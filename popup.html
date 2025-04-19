@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      width: 200px;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+    button {
+      width: 100%;
+      margin: 5px 0;
+      padding: 8px;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #3367d6;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 10px;
+      padding: 5px;
+      text-align: center;
+      border-radius: 4px;
+    }
+    .active {
+      background-color: #d6f5d6;
+      color: #2e7d32;
+    }
+    .inactive {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+  </style>
+</head>
+<body>
+  <h2>Job Listing Browser</h2>
+  <button id="startBtn">Start Browsing</button>
+  <button id="stopBtn" disabled>Stop Browsing</button>
+  <div id="status" class="status inactive">Currently inactive</div>
+  <script src="popup.js"></script>
+</body>
+</html>
