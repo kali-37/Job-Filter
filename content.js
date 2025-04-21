@@ -1,8 +1,6 @@
-// Global state
 let isRunning = false;
 let processor = null;
-
-// Original script logic - modified to work with extension
+const savedLinks = [];
 const waitForElement = (selector, timeout) => {
   return new Promise((resolve) => {
     const startTime = Date.now();
@@ -38,12 +36,29 @@ const processJobTitles = async () => {
       
       await waitForElement('.card-list-container .job-tile', 5000);
       const current_page = document.querySelectorAll('.card-list-container .job-tile');
-      
+      const provided = 80;
       for (let x of current_page) {
         if (!isRunning) break;
         
         x.click();
         const back_button = await waitForElement('.air3-slider-prev-btn', 3000);
+        let hire_rate = await waitForElement('.cfe-ui-job-about-client',3000);
+        if (hire_rate){
+          hire_rate=hire_rate.textContent;
+          rate = hire_rate.match(/(\d+)%\s+hire rate/i)[1];
+          if (rate > provided){
+            const hrefElement = document.querySelector(".air3-link.d-none.d-md-flex.air3-btn-link");
+            console.log(hrefElement);
+            const href_url = hrefElement ? hrefElement.href : null;
+            if (href_url){
+              savedLinks.push(href_url);
+              localStorage.setItem("savedJobLinks", JSON.stringify(savedLinks));
+            }
+          }
+        }
+
+
+
         
         if (back_button) {
           console.log("Going to another instance");
@@ -65,7 +80,6 @@ const processJobTitles = async () => {
   isRunning = false;
 };
 
-// Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "start") {
     if (!isRunning) {

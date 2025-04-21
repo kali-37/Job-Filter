@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const stopBtn = document.getElementById('stopBtn');
     const status = document.getElementById('status');
     
-    // Check if script is already running when popup opens
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
       chrome.tabs.sendMessage(tabs[0].id, {action: "getStatus"}, function(response) {
         if (response && response.isRunning) {
