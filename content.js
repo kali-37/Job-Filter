@@ -1,11 +1,12 @@
 let isRunning = false;
-let processor = null;
-const savedLinks = [];
+let savedLinks = [];
+
+
 const waitForElement = (selector, timeout) => {
   return new Promise((resolve) => {
     const startTime = Date.now();
     const checkElem = () => {
-      current_sel = document.querySelector(selector);
+      const current_sel = document.querySelector(selector);
       if (current_sel) {
         return resolve(current_sel);
       } else if (Date.now() - startTime > timeout) {
@@ -27,7 +28,7 @@ const nextBtn = () => {
   }
 };
 
-const processJobTitles = async () => {
+const processJobTitles = async (rateThreshold) => {
   if (!isRunning) return;
   
   try {
@@ -36,36 +37,43 @@ const processJobTitles = async () => {
       
       await waitForElement('.card-list-container .job-tile', 5000);
       const current_page = document.querySelectorAll('.card-list-container .job-tile');
-      const provided = 80;
+      console.log(`Processing ${current_page.length} job listings...`);
+      
       for (let x of current_page) {
         if (!isRunning) break;
         
         x.click();
         const back_button = await waitForElement('.air3-slider-prev-btn', 3000);
-        let hire_rate = await waitForElement('.cfe-ui-job-about-client',3000);
-        if (hire_rate){
-          hire_rate=hire_rate.textContent;
-          rate = hire_rate.match(/(\d+)%\s+hire rate/i)[1];
-          if (rate > provided){
-            const hrefElement = document.querySelector(".air3-link.d-none.d-md-flex.air3-btn-link");
-            console.log(hrefElement);
-            const href_url = hrefElement ? hrefElement.href : null;
-            if (href_url){
-              savedLinks.push(href_url);
-              localStorage.setItem("savedJobLinks", JSON.stringify(savedLinks));
+        let hire_rate = await waitForElement('.cfe-ui-job-about-client', 3000);
+        
+        if (hire_rate) {
+          hire_rate = hire_rate.textContent;
+          const rateMatch = hire_rate.match(/(\d+)%\s+hire rate/i);
+          
+          if (rateMatch && rateMatch[1]) {
+            const rate = parseInt(rateMatch[1]);
+            if (rate >= rateThreshold) {
+              console.log(`Found job with ${rate}% hire rate - above threshold of ${rateThreshold}%`);
+              const hrefElement = document.querySelector(".air3-link.d-none.d-md-flex.air3-btn-link");
+              const href_url = hrefElement ? hrefElement.href : null;
+              
+              if (href_url && !savedLinks.includes(href_url)) {
+                savedLinks.push(href_url);
+                localStorage.setItem("currentSessionLinks", JSON.stringify(savedLinks));
+                console.log(`Saved job URL: ${href_url}`);
+              }
             }
           }
         }
-
-
-
         
         if (back_button) {
-          console.log("Going to another instance");
           back_button.click();
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
+      
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
     } while (isRunning && nextBtn());
     
     if (isRunning) {
@@ -80,11 +88,21 @@ const processJobTitles = async () => {
   isRunning = false;
 };
 
+function notifyPopupOfLinks() {
+  chrome.runtime.sendMessage({
+    action: "linksUpdated",
+    links: savedLinks
+  });
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log("Content script received message:", request);
+  
   if (request.action === "start") {
     if (!isRunning) {
       isRunning = true;
-      processJobTitles();
+      const rateThreshold = request.rateThreshold || 90;
+      processJobTitles(rateThreshold);
       sendResponse({success: true});
     } else {
       sendResponse({success: false, message: "Already running"});
@@ -102,4 +120,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({isRunning: isRunning});
     return true;
   }
+  
+  else if (request.action === "getSavedLinks") {
+    sendResponse({links: savedLinks});
+    return true;
+  }
+  
+  else if (request.action === "clearLinks") {
+    savedLinks = [];
+    localStorage.removeItem("currentSessionLinks");
+    sendResponse({success: true});
+    return true;
+  }
 });
+
+setInterval(notifyPopupOfLinks, 1000);
+
+console.log("Job Listing Browser content script loaded");

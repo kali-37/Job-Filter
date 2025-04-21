@@ -3,8 +3,8 @@
 <head>
   <style>
     body {
-      width: 200px;
-      padding: 10px;
+      width: 300px;
+      padding: 15px;
       font-family: Arial, sans-serif;
     }
     button {
@@ -26,7 +26,7 @@
     }
     .status {
       margin-top: 10px;
-      padding: 5px;
+      padding: 8px;
       text-align: center;
       border-radius: 4px;
     }
@@ -38,13 +38,88 @@
       background-color: #ffebee;
       color: #c62828;
     }
+    .rate-container {
+      margin: 15px 0;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: calc(100% - 16px);
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .links-container {
+      margin-top: 15px;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+    .links-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    #clearLinks {
+      background-color: #f44336;
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+    #saved-links {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #eee;
+      padding: 8px;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+    }
+    #saved-links a {
+      display: block;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+      text-decoration: none;
+      color: #1a73e8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #saved-links a:hover {
+      text-decoration: underline;
+    }
+    .empty-message {
+      color: #666;
+      font-style: italic;
+      text-align: center;
+      padding: 10px;
+    }
   </style>
 </head>
 <body>
   <h2>Job Listing Browser</h2>
+  
+  <div class="rate-container">
+    <label for="rateInput">Minimum Hire Rate (%)</label>
+    <input type="number" id="rateInput" min="0" max="100" value="90">
+  </div>
+  
   <button id="startBtn">Start Browsing</button>
   <button id="stopBtn" disabled>Stop Browsing</button>
   <div id="status" class="status inactive">Currently inactive</div>
+  
+  <div class="links-container">
+    <div class="links-header">
+      <h3>Saved Job Links</h3>
+      <button id="clearLinks">Clear All</button>
+    </div>
+    <div id="saved-links">
+      <div class="empty-message">No saved links yet</div>
+    </div>
+  </div>
+  
   <script src="popup.js"></script>
 </body>
 </html>
